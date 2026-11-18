@@ -1,0 +1,35 @@
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+
+# Recordings and generated calibration artifacts
+data/
+outputs/
+experiments/
+archives/
+paper/
+*.twist
+*.tum
+*.csv
+*.npz
+*.npy
+*.bag
+*.db3
+*.mp4
+*.gif
+*.pdf
+*.zip
+
+# Logs and local editor files
+*.log
+*.out
+.DS_Store
+.idea/
+.vscode/
+
+# Keep the official project assets and docs
+!assets/*.png
+!assets/*.svg

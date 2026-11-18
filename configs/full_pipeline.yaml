@@ -1,0 +1,304 @@
+project:
+  name: data_velocity_calib
+  output_dir: ../outputs/sequence
+reference:
+  twist: ../data/sequence/gt.twist
+stages:
+- name: radar_main
+  type: radar_reference
+  enabled: true
+  inputs:
+    radar_velocity: ../data/sequence/radar_vel.tum
+    radar_cols: '1:4'
+  preprocessing:
+    trim_edges_sec: 1.0
+    velocity_lowpass:
+      enabled: true
+      method: savgol
+      window_sec: 0.45
+      polyorder: 2
+      edge_mode: interp
+    quality_filter:
+      enabled: true
+      success_only: true
+      exclude_zero_velocity: true
+      min_valid_points: 10
+      min_unique_points: 8
+      min_inliers: 6
+      min_inlier_ratio: 0.45
+      max_cond: 30.0
+      max_rmse_inlier: 0.15
+      time_tolerance_sec: 0.03
+    speed_outlier_filter:
+      enabled: true
+      max_speed_m_s: 2.0
+      mad_k: 8.0
+  time:
+    coarse_start: true
+    max_lag_sec: 15.0
+    search_range_sec: 0.5
+    coarse_offset_adjust_sec: 0.0
+    initial_offset_sec: null
+    trim_activity_for_correlation: false
+    activity_threshold: 0.05
+    fit_scale_for_time: true
+  optimization:
+    loss: huber
+    f_scale: 0.2
+    max_nfev: 300
+    scale_mode: fixed
+    bias_mode: body
+    bias_bound_m_s: 0.5
+    tau_refine_window_sec: 0.5
+    axis_weights:
+    - 1.0
+    - 1.0
+    - 0.05
+    translation_bound_m: 5.0
+    rotvec_bound_rad: 3.141592653589793
+    log_scale_bound: 2.0
+    trim_edges_sec: 0.0
+    cad_translation_prior:
+      enabled: false
+      p_m:
+      - 0.0865
+      - -0.0418
+      - 0.0766
+      sigma_m:
+      - 0.03
+      - 0.03
+      - 0.03
+  diagnostics:
+    save_plots: true
+- name: aid_radar_main
+  type: radar_reference
+  enabled: true
+  inputs:
+    radar_velocity: ../data/sequence/aid_radar_vel.tum
+    radar_cols: '1:4'
+  preprocessing:
+    trim_edges_sec: 1.0
+    velocity_lowpass:
+      enabled: true
+      method: savgol
+      window_sec: 0.45
+      polyorder: 2
+      edge_mode: interp
+    quality_filter:
+      enabled: true
+      success_only: true
+      exclude_zero_velocity: true
+      min_valid_points: 10
+      min_unique_points: 8
+      min_inliers: 6
+      min_inlier_ratio: 0.45
+      max_cond: 30.0
+      max_rmse_inlier: 0.15
+      time_tolerance_sec: 0.03
+    speed_outlier_filter:
+      enabled: true
+      max_speed_m_s: 2.0
+      mad_k: 8.0
+  time:
+    coarse_start: true
+    max_lag_sec: 15.0
+    search_range_sec: 0.5
+    coarse_offset_adjust_sec: 0.0
+    initial_offset_sec: null
+    trim_activity_for_correlation: false
+    activity_threshold: 0.05
+    fit_scale_for_time: true
+  optimization:
+    loss: huber
+    f_scale: 0.2
+    max_nfev: 300
+    scale_mode: fixed
+    bias_mode: body
+    bias_bound_m_s: 0.5
+    tau_refine_window_sec: 0.5
+    axis_weights:
+    - 1.0
+    - 0.05
+    - 1.0
+    translation_bound_m: 5.0
+    rotvec_bound_rad: 3.141592653589793
+    log_scale_bound: 2.0
+    trim_edges_sec: 0.0
+    cad_translation_prior:
+      enabled: false
+      p_m:
+      - 0.0865
+      - -0.0418
+      - 0.0766
+      sigma_m:
+      - 0.03
+      - 0.03
+      - 0.03
+  diagnostics:
+    save_plots: true
+- name: event_main
+  type: event_reference
+  enabled: true
+  inputs:
+    event_flow: ../data/sequence/debug_flows.csv
+    x_cols: '2:5'
+    normal_cols: '8:11'
+    flow_mode: auto
+    normal_speed_col: '11'
+    alpha_col: null
+    flow_scale: 1.0
+    max_samples: 12000
+  preprocessing:
+    trim_edges_sec: 1.0
+  time:
+    coarse_start: false
+    max_lag_sec: 10.0
+    search_range_sec: 0.05
+    coarse_offset_adjust_sec: 0.0
+    initial_offset_sec: null
+  initialization:
+    rotvec_body_event:
+    - 0.0
+    - 0.0
+    - 0.0
+    translation_m:
+    - 0.0
+    - 0.0
+    - 0.0
+  optimization:
+    loss: huber
+    f_scale: 0.2
+    max_nfev: 300
+    tau_refine_window_sec: 1e-4
+    translation_bound_m: 5.0
+    rotvec_bound_rad: 3.141592653589793
+  diagnostics:
+    save_plots: true
+- name: livox_imu_main
+  type: imu_reference
+  enabled: true
+  inputs:
+    imu: ../data/sequence/livox_imu.csv
+    gyro_cols: '4:7'
+    accel_cols: '1:4'
+  preprocessing:
+    trim_edges_sec: 1.0
+    reference_accel_lowpass:
+      enabled: true
+      method: savgol
+      window_sec: 0.05
+      polyorder: 2
+      edge_mode: interp
+  time:
+    coarse_start: true
+    max_lag_sec: 10.0
+    search_range_sec: 0.5
+    coarse_offset_adjust_sec: 0.0
+  optimization:
+    loss: soft_l1
+    f_scale: 0.01
+    max_nfev: 300
+    tau_refine_window_sec: 0.05
+    rotvec_bound_rad: 3.141592653589793
+    gyro_bias_bound_rad_s: 2.0
+  diagnostics:
+    save_plots: true
+  accelerometer_calibration:
+    enabled: true
+    gravity_norm_m_s2: 9.80665
+    time_decay_sec: 30.0
+    angular_weight: true
+    loss: soft_l1
+    f_scale: 0.1
+    max_nfev: 300
+    cad_translation_prior:
+      enabled: false
+      p_m:
+      - 0.0569
+      - 0.01265
+      - 0.05068
+      sigma_m:
+      - 0.03
+      - 0.03
+      - 0.03
+- name: dvs_imu_main
+  type: imu_reference
+  enabled: true
+  inputs:
+    imu: ../data/sequence/dvs_imu.csv
+    gyro_cols: '4:7'
+    accel_cols: '1:4'
+  preprocessing:
+    trim_edges_sec: 1.0
+    reference_accel_lowpass:
+      enabled: true
+      method: savgol
+      window_sec: 0.05
+      polyorder: 2
+      edge_mode: interp
+  time:
+    coarse_start: true
+    max_lag_sec: 10.0
+    search_range_sec: 0.5
+    coarse_offset_adjust_sec: 0.0
+  optimization:
+    loss: soft_l1
+    f_scale: 0.01
+    max_nfev: 300
+    tau_refine_window_sec: 0.05
+    rotvec_bound_rad: 3.141592653589793
+    gyro_bias_bound_rad_s: 2.0
+  diagnostics:
+    save_plots: true
+  accelerometer_calibration:
+    enabled: true
+    gravity_norm_m_s2: 9.80665
+    time_decay_sec: 30.0
+    angular_weight: true
+    loss: soft_l1
+    f_scale: 0.1
+    max_nfev: 300
+    cad_translation_prior:
+      enabled: false
+      p_m:
+      - 0.0569
+      - 0.01265
+      - 0.05068
+      sigma_m:
+      - 0.03
+      - 0.03
+      - 0.03
+- name: joint_refine
+  type: joint_refine
+  enabled: true
+  inputs:
+    stages:
+    - radar_main
+    - aid_radar_main
+    - event_main
+    - livox_imu_main
+    - dvs_imu_main
+  optimization:
+    loss: huber
+    f_scale: 0.2
+    max_nfev: 200
+    rot_delta_bound_rad: 0.35
+    translation_delta_bound_m: 0.3
+    tau_delta_bound_sec: 0.03
+    log_scale_delta_bound: 0.35
+    gyro_bias_delta_bound_rad_s: 0.2
+    weights:
+      radar: 1.0
+      event: 1.0
+      imu: 1.0
+- name: joint_manifest
+  type: joint_manifest
+  enabled: true
+  inputs:
+    stages:
+    - radar_main
+    - aid_radar_main
+    - event_main
+    - livox_imu_main
+    - dvs_imu_main
+    - joint_refine

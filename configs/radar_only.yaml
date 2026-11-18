@@ -1,0 +1,63 @@
+# Radar-only velocity-domain calibration.
+# Replace the paths below or pass --data-dir with a directory that contains
+# gt.twist and radar_vel.tum.
+project:
+  name: radar_only
+  output_dir: ../outputs/radar_only
+
+reference:
+  # t, vx, vy, vz, wx, wy, wz in the reference/body frame.
+  twist: ../data/sequence/gt.twist
+
+stages:
+  - name: radar_main
+    type: radar_reference
+    enabled: true
+    inputs:
+      # t plus three velocity columns. Use radar_cols if the triplet is not 1:4.
+      radar_velocity: ../data/sequence/radar_vel.tum
+      radar_cols: "1:4"
+      # Optional per-point radar diagnostics used by the quality filter.
+      # radar_debug: ../data/sequence/details/radar_lsq_debug_main.csv
+    preprocessing:
+      trim_edges_sec: 0.5
+      velocity_lowpass:
+        enabled: true
+        method: savgol
+        window_sec: 0.45
+        polyorder: 2
+        edge_mode: interp
+      quality_filter:
+        enabled: true
+        success_only: true
+        exclude_zero_velocity: true
+        min_valid_points: 10
+        min_unique_points: 8
+        min_inliers: 6
+        min_inlier_ratio: 0.45
+        max_cond: 30.0
+        max_rmse_inlier: 0.15
+        time_tolerance_sec: 0.03
+      speed_outlier_filter:
+        enabled: true
+        max_speed_m_s: 2.0
+        mad_k: 8.0
+    time:
+      coarse_start: true
+      max_lag_sec: 15.0
+      search_range_sec: 0.5
+      initial_offset_sec: null
+      trim_activity_for_correlation: false
+      activity_threshold: 0.05
+      fit_scale_for_time: true
+    optimization:
+      loss: huber
+      f_scale: 0.2
+      max_nfev: 300
+      scale_mode: fixed
+      tau_refine_window_sec: 0.5
+      translation_bound_m: 5.0
+      rotvec_bound_rad: 3.141592653589793
+      log_scale_bound: 2.0
+    diagnostics:
+      save_plots: true
