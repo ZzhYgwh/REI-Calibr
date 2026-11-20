@@ -17,6 +17,14 @@
 
 This repository contains the runnable Python pipeline, the final reference configurations, a compact result summary, and a ROS 1 frontend submodule for motion-cue extraction. Raw recordings, generated experiment folders, intermediate files, and the manuscript are **not** included.
 
+## Framework
+
+<p align="center">
+  <img src="assets/framework.png" alt="REI-Calibr reference-twist calibration framework" width="100%">
+</p>
+
+The framework calibrates radar, event-camera, and IMU motion cues against an arbitrary reference twist through coarse initialization, per-sensor refinement, and optional joint optimization.
+
 ## Highlights
 
 - Rigid-body velocity residual with the lever-arm term: `R_BR v_R = s (v_B + ω_B × p_BR)`.
@@ -24,6 +32,14 @@ This repository contains the runnable Python pipeline, the final reference confi
 - Coarse-to-fine time-offset estimation and robust Huber/soft-L1 optimization.
 - Reusable YAML configuration with CLI overrides and one-stage execution.
 - Reproducible manifests (`calibration_session.json`, `resolved_config.yaml`) and per-stage diagnostics.
+
+## Video
+
+<a id="video"></a>
+
+[![Reference-twist calibration video](assets/video_thumbnail.jpg)](https://www.youtube.com/watch?v=mXS583RE3yQ)
+
+[Watch the illustrative video on YouTube](https://www.youtube.com/watch?v=mXS583RE3yQ)
 
 ## Method
 
@@ -259,14 +275,6 @@ The following single-sequence snapshot is included for orientation only; raw dat
 | `dvs_imu_main` | 0.060671 | -0.768396 | `[0.0918803, 0.00665832, 0.0244585]` |
 
 Residual RMS is in the native unit of each stage. Compare values within a modality rather than across modalities.
-
-## Video
-
-<a id="video"></a>
-
-[![Reference-twist calibration video](assets/video_thumbnail.jpg)](https://www.youtube.com/watch?v=mXS583RE3yQ)
-
-[Watch the illustrative video on YouTube](https://www.youtube.com/watch?v=mXS583RE3yQ)
 
 ## Citation
 
