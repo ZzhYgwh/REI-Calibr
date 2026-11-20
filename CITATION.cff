@@ -13,7 +13,7 @@ authors:
     given-names: Chunhui
   - family-names: Pan
     given-names: Quan
-version: 0.2.0
+version: 0.2.1
 date-released: "2026-11-20"
 license: MIT
 repository-code: "https://github.com/ZzhYgwh/REI-Calibr"

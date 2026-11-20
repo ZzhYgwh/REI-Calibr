@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rei-calibr"
-version = "0.2.0"
+version = "0.2.1"
 description = "Reference-twist-based velocity-domain spatiotemporal calibration for radar, event camera, and IMU"
 readme = "README.md"
 requires-python = ">=3.8"
