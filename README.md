@@ -6,15 +6,16 @@
   <a href="https://github.com/ZzhYgwh/REI-Calibr/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ZzhYgwh/REI-Calibr/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-2EA043?style=flat-square"></a>
-  <a href="https://arxiv.org/abs/XXXX.XXXXX"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-B31B1B?style=flat-square&logo=arxiv&logoColor=white"></a>
-  <a href="#video"><img alt="YouTube" src="https://img.shields.io/badge/YouTube-coming%20soon-FF0000?style=flat-square&logo=youtube&logoColor=white"></a>
+  <a href="https://github.com/ZzhYgwh/REI-Calibr-Frontend"><img alt="ROS frontend" src="https://img.shields.io/badge/ROS%201-frontend-22314E?style=flat-square&logo=ros&logoColor=white"></a>
+  <a href="https://arxiv.org/abs/2611.26083"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2611.26083-B31B1B?style=flat-square&logo=arxiv&logoColor=white"></a>
+  <a href="https://www.youtube.com/watch?v=mXS583RE3yQ"><img alt="YouTube" src="https://img.shields.io/badge/YouTube-watch%20video-FF0000?style=flat-square&logo=youtube&logoColor=white"></a>
 </p>
 
 # REI-Calibr
 
 **REI-Calibr** is the execution code for velocity-domain spatiotemporal calibration of a **radar**, an **event camera**, and an **IMU** against a fixed reference twist. It estimates each sensor's rotation, translation, time offset, and modality-specific nuisance parameters without requiring sensor-to-sensor feature associations.
 
-This repository is intentionally lightweight: it contains the runnable pipeline, the final reference configurations, and a compact result summary. Raw recordings, generated experiment folders, intermediate files, and the manuscript are **not** included.
+This repository contains the runnable Python pipeline, the final reference configurations, a compact result summary, and a ROS 1 frontend submodule for motion-cue extraction. Raw recordings, generated experiment folders, intermediate files, and the manuscript are **not** included.
 
 ## Highlights
 
@@ -50,9 +51,10 @@ The radar, event, and IMU stages share the same reference twist but keep modalit
 ├── calibr_tools/velocity/  # Modular calibration pipeline
 ├── configs/                # Sanitized final configurations
 ├── docs/                   # Input format and compact results
+├── frontend/               # ROS 1 radar/event/IMU motion-cue frontend (Git submodule)
 ├── scripts/                # Synthetic example, single-sequence/batch runners, aggregation
 ├── CITATION.cff            # Citation metadata
-├── LICENSE                 # MIT
+├── LICENSE                 # MIT for the Python pipeline
 ├── pyproject.toml          # Package metadata
 └── requirements.txt        # Runtime dependencies
 ```
@@ -62,7 +64,7 @@ The radar, event, and IMU stages share the same reference twist but keep modalit
 The code requires Python 3.8 or newer and works on CPU only.
 
 ```bash
-git clone https://github.com/ZzhYgwh/REI-Calibr.git
+git clone --recurse-submodules https://github.com/ZzhYgwh/REI-Calibr.git
 cd REI-Calibr
 
 python3 -m venv .venv
@@ -79,9 +81,53 @@ python3 -m pip install -e .
 
 Core dependencies: `numpy`, `scipy`, `PyYAML`, and `matplotlib`.
 
+## ROS Frontend
+
+The motion-cue frontend is maintained in the standalone [REI-Calibr-Frontend](https://github.com/ZzhYgwh/REI-Calibr-Frontend) repository and vendored here as the `frontend/` Git submodule. It extracts radar Doppler velocities and event-camera normal flow, and it buffers/interpolates IMU measurements for those motion estimators. It stops before the back-end optimization.
+
+If the main repository was cloned without submodules, run:
+
+```bash
+git submodule update --init --recursive
+```
+
+The frontend targets ROS 1 Noetic and requires `dvs_msgs` in the same catkin workspace. Build it with:
+
+```bash
+mkdir -p ~/rei_frontend_ws/src
+ln -s "$(pwd)/frontend" ~/rei_frontend_ws/src/rei_calibr_frontend
+cd ~/rei_frontend_ws
+catkin_make -DCMAKE_BUILD_TYPE=Release
+source devel/setup.bash
+```
+
+The only launch entry point is `out.launch`:
+
+```bash
+roslaunch rei_calibr_frontend out.launch \
+  output_dir:=$HOME/rei_frontend_output \
+  start_rviz:=false
+```
+
+See [`frontend/README.md`](frontend/README.md) for dependencies, topic mappings, output file formats, and the raw-data replay workflow.
+
 ## Data
 
-Place one recording in `data/sequence/`. The minimum radar-only setup is:
+### Raw recordings
+
+The raw radar-event-IMU recordings are distributed separately on Google Drive:
+
+**[Raw recordings](https://drive.google.com/drive/folders/11vWLF8X6Cd7w-J2NAtEPvszvG5DYo0Hy?usp=drive_link)**
+
+These files are the original sensor logs. Use the [ROS frontend](https://github.com/ZzhYgwh/REI-Calibr-Frontend) and `frontend/launch/out.launch` to extract radar velocities, event normal flow, and IMU-dependent motion estimates from them. Raw bags are not tracked in this repository or its submodule.
+
+### Calibration inputs
+
+The processed frontend data used as input to the Python calibration pipeline are also available separately:
+
+**[Frontend-processed calibration inputs](https://drive.google.com/drive/folders/1pBN6QWuz3XEVE6UZTKoemDToQXk3U_Nt?usp=drive_link)**
+
+Place one calibration-input directory in `data/sequence/`. The minimum radar-only setup is:
 
 ```text
 data/sequence/
@@ -91,7 +137,7 @@ data/sequence/
 
 The full setup also uses `aid_radar_vel.tum`, `debug_flows.csv`, `livox_imu.csv`, and `dvs_imu.csv`. See [`docs/DATA_FORMAT.md`](docs/DATA_FORMAT.md) for the column conventions and optional radar diagnostics.
 
-The recordings used in the paper are not bundled here. The paper's project page is [ZzhYgwh/TwistEstimator](https://github.com/ZzhYgwh/TwistEstimator); use the data release and format notes there if you are reproducing the complete five-sensor experiment.
+The linked calibration-input bundle is the reproducible input source for the Python pipeline. Regenerating every file from the raw recordings requires the corresponding ROS drivers, topic mappings, and the frontend configuration used for the experiment.
 
 ## Running
 
@@ -218,44 +264,36 @@ Residual RMS is in the native unit of each stage. Compare values within a modali
 
 <a id="video"></a>
 
-YouTube: _coming soon_. Add the final illustrative video URL here and in the badge at the top of this file.
+[![Reference-twist calibration video](assets/video_thumbnail.jpg)](https://www.youtube.com/watch?v=mXS583RE3yQ)
+
+[Watch the illustrative video on YouTube](https://www.youtube.com/watch?v=mXS583RE3yQ)
 
 ## Citation
 
-If you use this code, please cite the accompanying paper. The arXiv identifier is a placeholder until the preprint record is assigned.
+If you use this code, please cite the accompanying paper:
+
+Z. Zou, Y. Lyu, X. Guo, C. Zhao, and Q. Pan, “Reference-Twist-Based Velocity-Domain Spatiotemporal Calibration for mmWave Radar, Event Camera, and IMU,” arXiv preprint arXiv:2611.26083, 2026.
 
 **arXiv reference format**
 
-> Y. Lyu, Z. Zou, Y. Li, X. Guo, C. Zhao, and Q. Pan, “Radar and Event Camera Fusion for Agile Robot Ego-Motion Estimation,” arXiv preprint arXiv:XXXX.XXXXX, 2026.
+> Z. Zou, Y. Lyu, X. Guo, C. Zhao, and Q. Pan, “Reference-Twist-Based Velocity-Domain Spatiotemporal Calibration for mmWave Radar, Event Camera, and IMU,” arXiv preprint arXiv:2611.26083, 2026.
 
-**BibTeX for arXiv**
+**BibTeX**
 
 ```bibtex
-@misc{lyu2026radareventarxiv,
-  author        = {Lyu, Yang and Zou, Zhenghao and Li, Yanfeng and Guo, Xiaohu and Zhao, Chunhui and Pan, Quan},
-  title         = {Radar and Event Camera Fusion for Agile Robot Ego-Motion Estimation},
+@misc{zou2026reference,
+  author        = {Zou, Zhenghao and Lyu, Yang and Guo, Xiaohu and Zhao, Chunhui and Pan, Quan},
+  title         = {Reference-Twist-Based Velocity-Domain Spatiotemporal Calibration for mmWave Radar, Event Camera, and IMU},
   year          = {2026},
-  eprint        = {XXXX.XXXXX},
+  eprint        = {2611.26083},
   archivePrefix = {arXiv},
   primaryClass  = {cs.RO},
-  note          = {Preprint}
+  url           = {https://arxiv.org/abs/2611.26083}
 }
 ```
 
-**Published version**
-
-```bibtex
-@article{lyu2026radarevent,
-  author  = {Lyu, Yang and Zou, Zhenghao and Li, Yanfeng and Guo, Xiaohu and Zhao, Chunhui and Pan, Quan},
-  title   = {Radar and Event Camera Fusion for Agile Robot Ego-Motion Estimation},
-  journal = {IEEE/ASME Transactions on Mechatronics},
-  year    = {2026},
-  doi     = {10.1109/TMECH.2026.3662880}
-}
-```
-
-Paper DOI: [10.1109/TMECH.2026.3662880](https://doi.org/10.1109/TMECH.2026.3662880). Update the arXiv link, arXiv reference, BibTeX `eprint`, and `CITATION.cff` when the preprint identifier is available.
+Paper: [arXiv:2611.26083](https://arxiv.org/abs/2611.26083)
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+The Python pipeline in this repository is released under the [MIT License](LICENSE). The ROS frontend submodule is released under **GPL-3.0-only** because some parameter utilities are derived from GPL-3.0 LI-Calib code; see [`frontend/LICENSE`](frontend/LICENSE).

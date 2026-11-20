@@ -1,5 +1,12 @@
 # Input Data Format
 
+## Data releases
+
+- **Raw recordings:** [Google Drive](https://drive.google.com/drive/folders/11vWLF8X6Cd7w-J2NAtEPvszvG5DYo0Hy?usp=drive_link)
+- **Frontend-processed calibration inputs:** [Google Drive](https://drive.google.com/drive/folders/1pBN6QWuz3XEVE6UZTKoemDToQXk3U_Nt?usp=drive_link)
+
+The raw recordings are original sensor logs and are not stored in this repository. The calibration-input bundle contains the timestamped files expected by `configs/full_pipeline.yaml`. To regenerate frontend observations from raw logs, use the [REI-Calibr-Frontend](https://github.com/ZzhYgwh/REI-Calibr-Frontend) submodule and its `launch/out.launch`.
+
 The pipeline expects one directory per recording. A typical directory looks like this:
 
 ```text
@@ -42,7 +49,15 @@ The optional `details/radar_lsq_debug_*.csv` files feed the radar quality filter
 
 ## Event normal flow
 
-Event observations are produced by the event frontend and stored in a CSV table. The exact meaning of each column is configurable through:
+Event observations are produced by the event frontend and stored in a CSV table. The `debug_flows.csv` written by the bundled frontend has this layout:
+
+```text
+process_time,inlier_idx,pixel_x,pixel_y,pixel_z,
+norm_in_pixel_x,norm_in_pixel_y,norm_in_pixel_z,
+grad_x,grad_y,grad_z,normal_norm
+```
+
+The exact meaning of each column is configurable through:
 
 ```yaml
 x_cols: "2:5"
@@ -57,7 +72,7 @@ alpha_col: null
 - `normal_speed_col` or `alpha_col` scales the normal to obtain the flow.
 - If the flow vector is already stored directly, set `flow_mode: vector` and leave the speed columns as `null`.
 
-The bundled `configs/full_pipeline.yaml` matches the experiment-frontend export format used for the reported results. Adapt these four fields if your frontend uses a different layout.
+The bundled `configs/full_pipeline.yaml` matches this export: event coordinates are columns `2:5`, the flow vector is `8:11`, and the flow magnitude is column `11`. Adapt these four fields if your frontend uses a different layout.
 
 ## IMU
 
@@ -71,6 +86,8 @@ t ax ay az gx gy gz
 - Gyroscope values are in rad/s.
 
 The default column selection is `accel_cols: "1:4"` and `gyro_cols: "4:7"`. A gyro-only file such as `t gx gy gz` is also supported.
+
+The calibration-input release contains the synchronized IMU exports used in the reported experiment (`livox_imu.csv` and `dvs_imu.csv`). The ROS frontend writes IMU-dependent motion estimates and event/radar diagnostics; the dataset bundle should be treated as the canonical source when exact reproduction of the paper inputs matters.
 
 ## Outputs
 

@@ -1,47 +1,40 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the accompanying paper and this repository."
-title: "REI-Calibr: Radar-Event-IMU Velocity-Domain Calibration"
+title: "REI-Calibr: Reference-Twist-Based Velocity-Domain Spatiotemporal Calibration"
 type: software
 authors:
-  - family-names: Lyu
-    given-names: Yang
   - family-names: Zou
     given-names: Zhenghao
-  - family-names: Li
-    given-names: Yanfeng
+  - family-names: Lyu
+    given-names: Yang
   - family-names: Guo
     given-names: Xiaohu
   - family-names: Zhao
     given-names: Chunhui
   - family-names: Pan
     given-names: Quan
-version: 0.1.0
-date-released: "2026-11-18"
+version: 0.2.0
+date-released: "2026-11-20"
 license: MIT
 repository-code: "https://github.com/ZzhYgwh/REI-Calibr"
-url: "https://github.com/ZzhYgwh/REI-Calibr"
+url: "https://arxiv.org/abs/2611.26083"
 identifiers:
-  - type: doi
-    value: 10.1109/TMECH.2026.3662880
   - type: other
-    value: "arXiv:XXXX.XXXXX"
-    description: "arXiv identifier placeholder; update after the preprint is assigned."
+    value: "arXiv:2611.26083"
+    description: "arXiv preprint identifier"
 preferred-citation:
-  type: article
-  title: "Radar and Event Camera Fusion for Agile Robot Ego-Motion Estimation"
+  type: preprint
+  title: "Reference-Twist-Based Velocity-Domain Spatiotemporal Calibration for mmWave Radar, Event Camera, and IMU"
   authors:
-    - family-names: Lyu
-      given-names: Yang
     - family-names: Zou
       given-names: Zhenghao
-    - family-names: Li
-      given-names: Yanfeng
+    - family-names: Lyu
+      given-names: Yang
     - family-names: Guo
       given-names: Xiaohu
     - family-names: Zhao
       given-names: Chunhui
     - family-names: Pan
       given-names: Quan
-  journal: "IEEE/ASME Transactions on Mechatronics"
   year: 2026
-  doi: "10.1109/TMECH.2026.3662880"
+  url: "https://arxiv.org/abs/2611.26083"
